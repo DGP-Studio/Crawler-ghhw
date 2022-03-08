@@ -106,7 +106,7 @@ def getCharInfo(url):
     charTableJson = charStatList
     #print(charTableJson)
 
-    # 命之座 Constellations
+    # 命之座 Constellation
     #print("=" * 20)
     #print("命之座")
     ConstellationsDict = {}
@@ -143,7 +143,7 @@ def getCharInfo(url):
     ## 生成Json
     Constellation = 0
     while Constellation < len(Constellations_list):
-        keyName = "Constellations" + str(Constellation + 1)
+        keyName = "Constellation" + str(Constellation + 1)
         ConstellationsDict[keyName] = Constellations_list[Constellation]
         Constellation += 1
     Constellations_Json = json.dumps(ConstellationsDict, ensure_ascii=False, sort_keys=True, indent=4,
@@ -449,7 +449,7 @@ if __name__ == "__main__":
             thisURL = "https://genshin.honeyhunterworld.com/db/char/" + keyName + "/?lang=CHS"
             returned_list = getCharInfo(thisURL)
             character["CharStat"] = returned_list[0]
-            character["Constellations"] = returned_list[1]
+            character["Constellation"] = returned_list[1]
             character["NormalAttack"] = returned_list[2]
             character["TalentE"] = returned_list[3]
             character["TalentQ"] = returned_list[4]
