@@ -413,7 +413,7 @@ def getCharInfo(url):
 if __name__ == "__main__":
     '''
     # Test demo
-    # getCharInfo("https://genshin.honeyhunterworld.com/db/char/amber/?lang=CHS")
+    result = getCharInfo("https://genshin.honeyhunterworld.com/db/char/amber/?lang=CHS")
     f = open('characters.json', encoding='utf-8')
     data = json.load(f)
     testChar = data[0]
@@ -460,12 +460,17 @@ if __name__ == "__main__":
             print(character['Key'] + "任务完成")
             newFileList.append(character)
             time.sleep(0)
-        except:
+        except Exception as e:
             print("Error when working for " + character['Key'])
-    newFileList = json.dumps(newFileList, ensure_ascii=False, indent=4, separators=(',', ':'))
-    f_output = open("result.json", mode="a", encoding='utf-8')
-    f_output.write(newFileList)
-    f_output.close()
+            print(e)
+    try:
+        newFileList = json.dumps(newFileList, ensure_ascii=False, indent=4, separators=(',', ':'))
+        f_output = open("result.json", mode="a", encoding='utf-8')
+        f_output.write(newFileList)
+        f_output.close()
+    except Exception as e:
+        print(e)
+
 
 
 
