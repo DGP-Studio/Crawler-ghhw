@@ -5,15 +5,17 @@ from bs4 import BeautifulSoup
 import json
 
 
+# 获取单个角色的数据并以字典的形式返回结果
 def getCharInfo(url):
+    rootURL = "https://genshin.honeyhunterworld.com"
     global CharTitle, charAstrolabeName, charDescription
     URL_Prefix = "https://genshin.honeyhunterworld.com/"
-    #print("=" * 20)
+    # print("=" * 20)
     keyword_pattern = "(\/char\/)(\w)+(\/)"
     re_result = re.search(keyword_pattern, url).group()
     re_result = re_result.replace("/char/", "")
     charKeyword = re_result.replace("/", "").capitalize()
-    #print("charKeyword: " + charKeyword)
+    # print("charKeyword: " + charKeyword)
     header = {
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "accept-encoding": "gzip, deflate, br",
@@ -25,10 +27,10 @@ def getCharInfo(url):
     soup = BeautifulSoup(r.text, 'lxml')
     # 获取主要信息页面
     main_content = soup.find("div", {'class': 'wrappercont'})
-    #print(main_content)
+    # print(main_content)
     # 获取角色名称
     charName = main_content.find('div', {'class': 'custom_title'}).text
-    #print("charName: " + charName)
+    # print("charName: " + charName)
 
     # 角色信息表格
     charInfoTable = main_content.find('table', {'class': 'item_main_table'}).find_all('tr')
@@ -38,26 +40,27 @@ def getCharInfo(url):
         # 角色 Title
         if this_line[0].text == "Title":
             CharTitle = this_line[1].text
-            #print("CharTitle: " + CharTitle)
+            # print("CharTitle: " + CharTitle)
         if this_line[0].text == "Allegiance":
             CharAllegiance = this_line[1].text
-            #print("CharAllegiance: " + CharAllegiance)
+            # print("CharAllegiance: " + CharAllegiance)
         if this_line[0].text == "Rarity":
             charRarity = len(this_line[1].find_all('div', {'class': 'sea_char_stars_wrap'}))
-            #print("charRarity: " + str(charRarity))
+            # print("charRarity: " + str(charRarity))
         if this_line[0].text == "Element":
             charElementPicURL = URL_Prefix + this_line[1].find('img')['data-src'].replace("_35", "")
-            charElementPicURL = charElementPicURL.replace("https://genshin.honeyhunterworld.com//", "https://genshin.honeyhunterworld.com/")
-            #print("charElement: " + str(charElementPicURL))
+            charElementPicURL = charElementPicURL.replace("https://genshin.honeyhunterworld.com//",
+                                                          "https://genshin.honeyhunterworld.com/")
+            # print("charElement: " + str(charElementPicURL))
         if this_line[0].text == "Astrolabe Name":
             charAstrolabeName = this_line[1].text
-            #print("charAstrolabeName: " + charAstrolabeName)
+            # print("charAstrolabeName: " + charAstrolabeName)
         if this_line[0].text == "In-game Description":
             charDescription = this_line[1].text
-            #print("charDescription: " + charDescription)
+            # print("charDescription: " + charDescription)
 
     # 角色属性表格
-    #print("=" * 20 + "\n角色属性")
+    # print("=" * 20 + "\n角色属性")
     skilldmgwrapper = main_content.find('div', {'class': 'skilldmgwrapper'}).find_all('tr')
     charTableList = []
     skilldmgwrapp_table1 = []
@@ -79,7 +82,7 @@ def getCharInfo(url):
             skilldmgwrapp_table7.append(all_prop[6].text)
         except:
             pass
-            #print("This character only has 6 stat")
+            # print("This character only has 6 stat")
     charTableList.append(skilldmgwrapp_table1)
     charTableList.append(skilldmgwrapp_table2)
     charTableList.append(skilldmgwrapp_table3)
@@ -104,11 +107,11 @@ def getCharInfo(url):
             charStatList.append(this_stat_dict)
     charTableJson = json.dumps(charStatList, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ':'))
     charTableJson = charStatList
-    #print(charTableJson)
+    # print(charTableJson)
 
     # 命之座 Constellation
-    #print("=" * 20)
-    #print("命之座")
+    # print("=" * 20)
+    # print("命之座")
     ConstellationsDict = {}
     Constellations_list = []
     Constellations_title = main_content.find('span', {'class': 'item_secondary_title'}, string="Constellations")
@@ -125,7 +128,8 @@ def getCharInfo(url):
             # print("This is a start of a constellation")
             this_line = Constellations_table[Constellations_list_count]
             imageURL = URL_Prefix + this_line.find_all('img', {'class': 'itempic'})[-1]['data-src']
-            imageURL = imageURL.replace("https://genshin.honeyhunterworld.com//", "https://genshin.honeyhunterworld.com/")
+            imageURL = imageURL.replace("https://genshin.honeyhunterworld.com//",
+                                        "https://genshin.honeyhunterworld.com/")
             # print("imgURL: " + str(imageURL))
             ConstellationsName = this_line.find_all('a', href=re.compile("/db/skill"))[-1].text
             # print("ConstellationsName: " + ConstellationsName)
@@ -139,7 +143,7 @@ def getCharInfo(url):
             this_Constellations['Description'] = ConstellationsDesc
             Constellations_list.append(this_Constellations)
         Constellations_list_count += 2
-    #print(Constellations_list)
+    # print(Constellations_list)
     ## 生成Json
     Constellation = 0
     while Constellation < len(Constellations_list):
@@ -155,12 +159,13 @@ def getCharInfo(url):
     skillsTitle = main_content.find('span', string='Attack Talents')
 
     ## 普攻
-    #print("=" * 20 + "\n普攻")
+    # print("=" * 20 + "\n普攻")
     normalAttack = {}
     normal_attack_area = skillsTitle.find_next_sibling()
     normal_attack_info = normal_attack_area.find_all('tr')
     normalAttack_imageURL = URL_Prefix + normal_attack_info[0].find('img', {'class': 'itempic'})['data-src']
-    normalAttack_imageURL = normalAttack_imageURL.replace("https://genshin.honeyhunterworld.com//", "https://genshin.honeyhunterworld.com/")
+    normalAttack_imageURL = normalAttack_imageURL.replace("https://genshin.honeyhunterworld.com//",
+                                                          "https://genshin.honeyhunterworld.com/")
     # print("imageURL: " + normalAttack_imageURL)
     normalAttack_name = normal_attack_info[0].find('a', href=re.compile('/db/skill/')).text
     # print("attack_name: " + str(normalAttack_name))
@@ -203,16 +208,17 @@ def getCharInfo(url):
     ### 生成Json
     normalAttack_Json = json.dumps(normalAttack, ensure_ascii=False, indent=4, separators=(',', ':'))
     normalAttack_Json = normalAttack
-    #print(normalAttack_Json)
+    # print(normalAttack_Json)
 
     ## E技能
-    #print("=" * 20 + "\nE技能")
+    # print("=" * 20 + "\nE技能")
     skillE = {}
     ### 介绍
     skillE_area = normalAttack_table_area.find_next_sibling()
     skillE_info = skillE_area.find_all('tr')
     skillE_imageURL = URL_Prefix + skillE_info[0].find('img', {'class': 'itempic'})['data-src']
-    skillE_imageURL = skillE_imageURL.replace("https://genshin.honeyhunterworld.com//", "https://genshin.honeyhunterworld.com/")
+    skillE_imageURL = skillE_imageURL.replace("https://genshin.honeyhunterworld.com//",
+                                              "https://genshin.honeyhunterworld.com/")
     # print("imageURL: " + skillE_imageURL)
     skillE_name = skillE_info[0].find('a', href=re.compile('/db/skill/')).text
     # print("attack_name: " + str(skillE_name))
@@ -252,17 +258,18 @@ def getCharInfo(url):
     ### 生成Json
     skillE_Json = json.dumps(skillE, ensure_ascii=False, indent=4, separators=(',', ':'))
     skillE_Json = skillE
-    #print(skillE_Json)
+    # print(skillE_Json)
 
     ## Q技能
-    #print("=" * 20 + "\nQ技能")
+    # print("=" * 20 + "\nQ技能")
     skillQ = {}
     load_another_talentQ = False  # 针对神里绫华和莫娜的专属修复
     ### 介绍
     skillQ_area = skillE_table_area.find_next_sibling()
     skillQ_info = skillQ_area.find_all('tr')
     skillQ_imageURL = URL_Prefix + skillQ_info[0].find('img', {'class': 'itempic'})['data-src']
-    skillQ_imageURL = skillQ_imageURL.replace("https://genshin.honeyhunterworld.com//", "https://genshin.honeyhunterworld.com/")
+    skillQ_imageURL = skillQ_imageURL.replace("https://genshin.honeyhunterworld.com//",
+                                              "https://genshin.honeyhunterworld.com/")
     # print("imageURL: " + skillQ_imageURL)
     skillQ_name = skillQ_info[0].find('a', href=re.compile('/db/skill/')).text
     # print("attack_name: " + str(skillQ_name))
@@ -304,17 +311,18 @@ def getCharInfo(url):
     ### 生成Json
     skillQ_Json = json.dumps(skillQ, ensure_ascii=False, indent=4, separators=(',', ':'))
     skillQ_Json = skillQ
-    #print(skillQ_Json)
+    # print(skillQ_Json)
 
     if load_another_talentQ:
         ## Q2技能 (神里绫华和莫娜的大招)
-        #print("=" * 20 + "\nQ技能")
+        # print("=" * 20 + "\nQ技能")
         skillQ2 = {}
         ### 介绍
         skillQ2_area = skillQ_table_area.find_next_sibling()
         skillQ2_info = skillQ2_area.find_all('tr')
         skillQ2_imageURL = URL_Prefix + skillQ2_info[0].find('img', {'class': 'itempic'})['data-src']
-        skillQ2_imageURL = skillQ2_imageURL.replace("https://genshin.honeyhunterworld.com//", "https://genshin.honeyhunterworld.com/")
+        skillQ2_imageURL = skillQ2_imageURL.replace("https://genshin.honeyhunterworld.com//",
+                                                    "https://genshin.honeyhunterworld.com/")
         # print("imageURL: " + skillQ2_imageURL)
         skillQ2_name = skillQ2_info[0].find('a', href=re.compile('/db/skill/')).text
         # print("attack_name: " + str(skillQ2_name))
@@ -351,21 +359,22 @@ def getCharInfo(url):
         ### 生成Json
         skillQ2_Json = json.dumps(skillQ2, ensure_ascii=False, indent=4, separators=(',', ':'))
         skillQ2_Json = skillQ2
-        #print(skillQ2_Json)
+        # print(skillQ2_Json)
 
     ## 天赋升级材料
-    #print("=" * 20 + "\n天赋升级材料")
+    # print("=" * 20 + "\n天赋升级材料")
     TelentMaterials_list = []
     TelentMaterials_area = main_content.find('span',
                                              string='Talent Ascension Materials (All 3 Talents lvl 10)').find_next_sibling()
     TelentMaterials_area_list = TelentMaterials_area.find_all('div', {'class': 'nowrap_rew_cont'})
     for item in TelentMaterials_area_list:
         itemImageURL = URL_Prefix + item.find('img', {'class': 'itempic'})['data-src']
-        itemImageURL = itemImageURL.replace("https://genshin.honeyhunterworld.com//", "https://genshin.honeyhunterworld.com/")
+        itemImageURL = itemImageURL.replace("https://genshin.honeyhunterworld.com//",
+                                            "https://genshin.honeyhunterworld.com/")
         itemRequiredNumber = item.find('div', {'class': 'itemstarcontbg_smol'}).text
         thisItemList = [itemImageURL, itemRequiredNumber]
         TelentMaterials_list.append(thisItemList)
-    #print(TelentMaterials_list)
+    # print(TelentMaterials_list)
 
     ## 被动天赋
     if load_another_talentQ:
@@ -381,13 +390,14 @@ def getCharInfo(url):
             # print("This is a start of a constellation")
             this_line = AllPassiveTalentsElements[i]
             imageURL = URL_Prefix + this_line.find_all('img', {'class': 'itempic'})[-1]['data-src']
-            imageURL = imageURL.replace("https://genshin.honeyhunterworld.com//", "https://genshin.honeyhunterworld.com/")
-            #print("imgURL: " + str(imageURL))
+            imageURL = imageURL.replace("https://genshin.honeyhunterworld.com//",
+                                        "https://genshin.honeyhunterworld.com/")
+            # print("imgURL: " + str(imageURL))
             PassiveTalentsName = this_line.find_all('a', href=re.compile("/db/skill"))[-1].text
-            #print("PassiveTalentsName: " + PassiveTalentsName)
+            # print("PassiveTalentsName: " + PassiveTalentsName)
             this_line = AllPassiveTalentsElements[i + 1]
             PassiveTalentsDesc = this_line.find('div', {'class': 'skill_desc_layout'}).text
-            #print("PassiveTalentsDesc: " + PassiveTalentsDesc)
+            # print("PassiveTalentsDesc: " + PassiveTalentsDesc)
 
             # Add to list
             thisPassiveTalents['Source'] = imageURL
@@ -398,80 +408,185 @@ def getCharInfo(url):
     PassiveTalents_Json = json.dumps(PassiveTalentsList, ensure_ascii=False, indent=4, separators=(',', ':'))
     PassiveTalents_Json = PassiveTalentsList
 
+    # 名片图
+    NameCardArea = main_content.find('span', string='NameCard Gallery').find_next_sibling()
+    AllNameCard = NameCardArea.findAll("div", {"class": "gallery_content_cont"})
+    profilePic = rootURL + AllNameCard[1].find("a", {"target": "_blank"})['href']
+    print(profilePic)
+
+    # 角色图片
+    CharPicArea = main_content.find('span', string='Character Gallery').find_next_sibling()
+    AllCharPic = CharPicArea.find("div", {"class": "gallery_cont"})
+    FaceIconText = AllCharPic.find("span", {"class": "gallery_cont_span"}, string="Face Icon")
+    FaceIconPic = rootURL + FaceIconText.previous_element.previous_element["data-src"].replace("_70", "")
+    print(FaceIconPic)
+
+    GachaCardText = AllCharPic.find("span", {"class": "gallery_cont_span"}, string="Gacha Card")
+    GachaCardPic = rootURL + GachaCardText.previous_element.previous_element["data-src"].replace("_70", "")
+    print(GachaCardPic)
+
+    GachaSplashText = AllCharPic.find("span", {"class": "gallery_cont_span"}, string="Gacha Splash")
+    GachaSplashPic = rootURL + GachaSplashText.previous_element.previous_element["data-src"].replace("_70", "")
+    print(GachaSplashPic)
+    '''
+    返回内容： 角色基本数值Dict，命之座Dict，基础攻击数值Dict
+            E技能数值Dict，Q技能数值Dict，角色标题Str，命之座名称Str，角色介绍Str
+    '''
     if load_another_talentQ:
         return [charTableJson, Constellations_Json, normalAttack_Json,
                 skillE_Json, skillQ2_Json, PassiveTalents_Json, CharTitle, charAstrolabeName, charDescription]
     else:
         return [charTableJson, Constellations_Json, normalAttack_Json,
                 skillE_Json, skillQ_Json, PassiveTalents_Json, CharTitle, charAstrolabeName, charDescription]
-    '''
-    返回内容： 角色基本数值Dict，命之座Dict，基础攻击数值Dict
-            E技能数值Dict，Q技能数值Dict，角色标题Str，命之座名称Str，角色介绍Str
-    '''
+
+
+def getItemName(itemURL):
+    itemPage = requests.get(itemURL).text
+    title = BeautifulSoup(itemPage, 'lxml').find("div", {"class": "custom_title"}).text
+    return title
+
+
+# 从内鬼网获取全部角色
+def getAllCharacters(getBetaCharacters: False, rareity=None):
+    rootURL = "https://genshin.honeyhunterworld.com"
+    url = "https://genshin.honeyhunterworld.com/db/char/characters/?lang=CHS"
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'lxml')
+    character_list = soup.find_all('div', {'class': 'char_sea_cont'})
+    print("找到了" + str(len(character_list)) + "个角色")
+    #for character in character_list:
+    character = character_list[0]
+
+    thisCharacterDict = {}
+    character_link = rootURL + character.a['href']
+    #print(character_link)
+    Element = rootURL + character.find("img", {"class": "char_portrait_card_sea_element"})["data-src"]
+    #print("Element: " + Element)
+    CharacterStarCount = len(character.findAll("svg", {"class": "sea_char_stars"}))
+    if CharacterStarCount == 4:
+        CharacterRarity = "https://genshin.honeyhunterworld.com/img/back/item/4star.png"
+    elif CharacterStarCount == 5:
+        CharacterRarity = "https://genshin.honeyhunterworld.com/img/back/item/5star.png"
+    else:
+        CharacterRarity = "Error"
+    #print("CharacterRarity: " + CharacterRarity)
+    Name = character.find("span", {"class": "sea_charname"}).text
+    #print("Name: " + Name)
+
+    # Required Materials 升级所需材料
+    Materials = character.find("div", {"class": "sea_char_mat_cont"})
+    Materials = Materials.findAll("a")
+    # Talent 天赋书
+    TalentStars = Materials[0].find("div")['data-bg']
+    TalentStarsPic = rootURL + re.search("(/img)(.)+(png)", TalentStars)[0]
+    print(TalentStarsPic)
+    TalentPic = rootURL + Materials[0].find("div").find("img", {"class": "lazy"})["data-src"].replace("_35", "")
+    print(TalentPic)
+    TalentURL = "https://genshin.honeyhunterworld.com/db/item/" + re.search("(i_)(\d)*", TalentPic)[0] + "/?lang=CHS"
+    print(TalentURL)
+    Talent = getItemName(TalentURL)
+    print(Talent)
+    # BOSS Drop
+    BOSS_DropStars = Materials[1].find("div")['data-bg']
+    BOSS_DropStarsPic = rootURL + re.search("(/img)(.)+(png)", BOSS_DropStars)[0]
+    print(BOSS_DropStarsPic)
+    BOSS_DropPic = rootURL + Materials[1].find("div").find("img", {"class": "lazy"})["data-src"].replace("_35", "")
+    print(BOSS_DropPic)
+    BOSS_DropURL = "https://genshin.honeyhunterworld.com/db/item/" + re.search("(i_)(\d)*", BOSS_DropPic)[0] + "/?lang=CHS"
+    BOSS_DropName = getItemName(BOSS_DropURL)
+    print(BOSS_DropName)
+    # GemStone
+    GenStoneStars = Materials[2].find("div")['data-bg']
+    GenStoneStarsPic = rootURL + re.search("(/img)(.)+(png)", GenStoneStars)[0]
+    print(GenStoneStarsPic)
+    GenStonePic = rootURL + Materials[2].find("div").find("img", {"class": "lazy"})["data-src"].replace("_35", "")
+    print(GenStonePic)
+    GenStoneURL = "https://genshin.honeyhunterworld.com/db/item/" + re.search("(i_)(\d)*", GenStonePic)[0] + "/?lang=CHS"
+    GenStoneName = getItemName(GenStoneURL)
+    print(GenStoneName)
+    # Local
+    LocalStars = Materials[3].find("div")['data-bg']
+    LocalStarsPic = rootURL + re.search("(/img)(.)+(png)", LocalStars)[0]
+    print(LocalStarsPic)
+    LocalPic = rootURL + Materials[3].find("div").find("img", {"class": "lazy"})["data-src"].replace("_35", "")
+    print(LocalPic)
+    LocalURL = "https://genshin.honeyhunterworld.com/db/item/" + re.search("(i_)(\d)*", LocalPic)[0] + "/?lang=CHS"
+    LocalName = getItemName(LocalURL)
+    print(LocalName)
+    # Monster
+    MonsterStars = Materials[4].find("div")['data-bg']
+    MonsterStarsPic = rootURL + re.search("(/img)(.)+(png)", MonsterStars)[0]
+    print(MonsterStarsPic)
+    MonsterPic = rootURL + Materials[4].find("div").find("img", {"class": "lazy"})["data-src"].replace("_35", "")
+    print(MonsterPic)
+    MonsterURL = "https://genshin.honeyhunterworld.com/db/item/" + re.search("(i_)(\d)*", MonsterPic)[0] + "/?lang=CHS"
+    MonsterName = getItemName(MonsterURL)
+    print(MonsterName)
+    # Weekly
+    WeeklyStars = Materials[5].find("div")['data-bg']
+    WeeklyStarsPic = rootURL + re.search("(/img)(.)+(png)", WeeklyStars)[0]
+    print(WeeklyStarsPic)
+    WeeklyPic = rootURL + Materials[5].find("div").find("img", {"class": "lazy"})["data-src"].replace("_35", "")
+    print(WeeklyPic)
+    WeeklyURL = "https://genshin.honeyhunterworld.com/db/item/" + re.search("(i_)(\d)*", WeeklyPic)[0] + "/?lang=CHS"
+    WeeklyName = getItemName(WeeklyURL)
+    print(WeeklyName)
+
+
+    if Name == "七七":
+        #getCharInfo(character_link)
+        pass
+
+
 
 
 if __name__ == "__main__":
-    '''
-    # Test demo
-    result = getCharInfo("https://genshin.honeyhunterworld.com/db/char/amber/?lang=CHS")
-    f = open('characters.json', encoding='utf-8')
-    data = json.load(f)
-    testChar = data[0]
-    print(testChar)
-    print(type(testChar))
-    thisURL = "https://genshin.honeyhunterworld.com/db/char/" + testChar['Key'].lower() + "/?lang=CHS"
-    new_data_list = getCharInfo(thisURL)
-    print("-"*20)
-    print(type(new_data_list[1]))
-    testChar["CharStat"] = new_data_list[0]
-    testChar["Constellations"] = new_data_list[1]
-    testChar["NormalAttack"] = new_data_list[2]
-    testChar["TalentE"] = new_data_list[3]
-    testChar["TalentQ"] = new_data_list[4]
-    new_json = json.dumps(testChar, ensure_ascii=False, indent=4, separators=(',', ':'))
-    f_output = open("demo.json", mode="a", encoding='utf-8')
-    f_output.write(new_json)
-    f_output.close()
-    '''
-
-
-    f = open('characters.json', encoding='utf-8')
-    data = json.load(f)
-    newFileList = []
-    for character in data:
+    print("输入工作方式：")
+    print("1. 从内鬼网加载全部角色数据")
+    print("2. 从 characters.json加载数据")
+    functionChoice = input("你的选择： ")
+    if functionChoice == "1":
+        pass
+    elif functionChoice == "2":
+        # 打开Json文件
+        f = open('characters.json', encoding='utf-8')
+        data = json.load(f)
+        newFileList = []
+        for character in data:
+            try:
+                print("加载数据：" + character['Key'])
+                # 获取角色Key name
+                keyName = character['Key'].lower()
+                if keyName == "yanfei":
+                    keyName = "feiyan"
+                if keyName == "raidenshogun":
+                    keyName = "shougun"
+                # 获取角色信息
+                thisURL = "https://genshin.honeyhunterworld.com/db/char/" + keyName + "/?lang=CHS"
+                returned_list = getCharInfo(thisURL)
+                # 处理数据
+                character["CharStat"] = returned_list[0]
+                character["Constellation"] = returned_list[1]
+                character["NormalAttack"] = returned_list[2]
+                character["TalentE"] = returned_list[3]
+                character["TalentQ"] = returned_list[4]
+                character["PassiveTalents"] = returned_list[5]
+                character["Title"] = returned_list[6]
+                character["AstrolabeName"] = returned_list[7]
+                character["Description"] = returned_list[8]
+                print(character['Key'] + "任务完成")
+                newFileList.append(character)
+                time.sleep(0)
+            except Exception as e:
+                print("Error when working for " + character['Key'])
+                print(e)
         try:
-            print("加载数据：" + character['Key'])
-            keyName = character['Key'].lower()
-            if keyName == "yanfei":
-                keyName = "feiyan"
-            if keyName == "raidenshogun":
-                keyName = "shougun"
-            thisURL = "https://genshin.honeyhunterworld.com/db/char/" + keyName + "/?lang=CHS"
-            returned_list = getCharInfo(thisURL)
-            character["CharStat"] = returned_list[0]
-            character["Constellation"] = returned_list[1]
-            character["NormalAttack"] = returned_list[2]
-            character["TalentE"] = returned_list[3]
-            character["TalentQ"] = returned_list[4]
-            character["PassiveTalents"] = returned_list[5]
-            character["Title"] = returned_list[6]
-            character["AstrolabeName"] = returned_list[7]
-            character["Description"] = returned_list[8]
-            print(character['Key'] + "任务完成")
-            newFileList.append(character)
-            time.sleep(0)
+            newFileList = json.dumps(newFileList, ensure_ascii=False, indent=4, separators=(',', ':'))
+            f_output = open("result.json", mode="a", encoding='utf-8')
+            f_output.write(newFileList)
+            f_output.close()
         except Exception as e:
-            print("Error when working for " + character['Key'])
             print(e)
-    try:
-        newFileList = json.dumps(newFileList, ensure_ascii=False, indent=4, separators=(',', ':'))
-        f_output = open("result.json", mode="a", encoding='utf-8')
-        f_output.write(newFileList)
-        f_output.close()
-    except Exception as e:
-        print(e)
-
-
-
-
-
+    elif functionChoice == "3":
+        print("choice 3")
+        getAllCharacters(False)
