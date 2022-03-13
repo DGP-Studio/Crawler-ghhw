@@ -8,7 +8,6 @@ from getCity import getCharacterCity, getTalentCity, getWeeklyItemName
 
 # 获取单个角色的数据并以字典的形式返回结果
 def getCharInfo(url):
-    rootURL = "https://genshin.honeyhunterworld.com"
     global CharTitle, charAstrolabeName, charDescription
     URL_Prefix = "https://genshin.honeyhunterworld.com/"
     # print("=" * 20)
@@ -412,22 +411,22 @@ def getCharInfo(url):
     # 名片图
     NameCardArea = main_content.find('span', string='NameCard Gallery').find_next_sibling()
     AllNameCard = NameCardArea.findAll("div", {"class": "gallery_content_cont"})
-    profilePic = rootURL + AllNameCard[1].find("a", {"target": "_blank"})['href']
+    profilePic = URL_Prefix + AllNameCard[1].find("a", {"target": "_blank"})['href']
     print(profilePic)
 
     # 角色图片
     CharPicArea = main_content.find('span', string='Character Gallery').find_next_sibling()
     AllCharPic = CharPicArea.find("div", {"class": "gallery_cont"})
     FaceIconText = AllCharPic.find("span", {"class": "gallery_cont_span"}, string="Face Icon")
-    FaceIconPic = rootURL + FaceIconText.previous_element.previous_element["data-src"].replace("_70", "")
+    FaceIconPic = URL_Prefix + FaceIconText.previous_element.previous_element["data-src"].replace("_70", "")
     print(FaceIconPic)
 
     GachaCardText = AllCharPic.find("span", {"class": "gallery_cont_span"}, string="Gacha Card")
-    GachaCardPic = rootURL + GachaCardText.previous_element.previous_element["data-src"].replace("_70", "")
+    GachaCardPic = URL_Prefix + GachaCardText.previous_element.previous_element["data-src"].replace("_70", "")
     print(GachaCardPic)
 
     GachaSplashText = AllCharPic.find("span", {"class": "gallery_cont_span"}, string="Gacha Splash")
-    GachaSplashPic = rootURL + GachaSplashText.previous_element.previous_element["data-src"].replace("_70", "")
+    GachaSplashPic = URL_Prefix + GachaSplashText.previous_element.previous_element["data-src"].replace("_70", "")
     print(GachaSplashPic)
     '''
     返回内容： 角色基本数值Dict，命之座Dict，基础攻击数值Dict
@@ -467,7 +466,7 @@ def getAllCharacters(getBetaCharacters: False):
         CharacterCity = getCharacterCity(KeyName)
         # print("City: " + CharacterCity)
         Name = character.find("span", {"class": "sea_charname"}).text
-        # print("Name: " + Name)
+        print("Name: " + Name)
         if "Traveler" in Name:
             print("Skip Traveler's page")
         else:
@@ -587,7 +586,7 @@ def getAllCharacters(getBetaCharacters: False):
             }
 
             # 加载角色主页面
-            characterInfo = getCharInfo(KeyName)
+            characterInfo = getCharInfo("https://genshin.honeyhunterworld.com/db/char/" + KeyName + "/?lang=CHS")
 
             # 写入该角色数据
             thisCharacterDict["Element"] = Element
@@ -616,6 +615,10 @@ def getAllCharacters(getBetaCharacters: False):
             thisCharacterDict["GachaSplash"] = characterInfo[12]
 
             allCharactersList.append(thisCharacterDict)
+    newFileList = json.dumps(allCharactersList, ensure_ascii=False, indent=4, separators=(',', ':'))
+    f_output = open("result_1.json", mode="a", encoding='utf-8')
+    f_output.write(newFileList)
+    f_output.close()
 
 
 if __name__ == "__main__":
