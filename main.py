@@ -3,6 +3,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 import json
+from getCity import getCharacterCity, getTalentCity, getWeeklyItemName
 
 
 # 获取单个角色的数据并以字典的形式返回结果
@@ -460,6 +461,10 @@ def getAllCharacters(getBetaCharacters: False):
         thisCharacterDict = {}
         character_link = rootURL + character.a['href']
         # print(character_link)
+        KeyName = re.search("(char\/)(\w)+", character_link)[0].replace("char/", "")
+        print("Key: " + KeyName)
+        CharacterCity = getCharacterCity(KeyName)
+        print("City: " + CharacterCity)
         Name = character.find("span", {"class": "sea_charname"}).text
         # print("Name: " + Name)
         if "Traveler" in Name:
@@ -475,7 +480,7 @@ def getAllCharacters(getBetaCharacters: False):
             else:
                 CharacterRarity = "Error"
             # print("CharacterRarity: " + CharacterRarity)
-    
+
 
             # Required Materials 升级所需材料
             Materials = character.find("div", {"class": "sea_char_mat_cont"})
@@ -488,8 +493,10 @@ def getAllCharacters(getBetaCharacters: False):
             print(TalentPic)
             TalentURL = "https://genshin.honeyhunterworld.com/db/item/" + re.search("(i_)(\d)*", TalentPic)[0] + "/?lang=CHS"
             print(TalentURL)
-            Talent = getItemName(TalentURL)
+            Talent = getItemName(TalentURL).replace("」的哲学", "").replace("「", "")
             print(Talent)
+            TalentCity = getTalentCity(Talent)
+            print("Talent City: " + TalentCity)
             # BOSS Drop
             BOSS_DropStars = Materials[1].find("div")['data-bg']
             BOSS_DropStarsPic = rootURL + re.search("(/img)(.)+(png)", BOSS_DropStars)[0]
@@ -537,6 +544,8 @@ def getAllCharacters(getBetaCharacters: False):
             WeeklyURL = "https://genshin.honeyhunterworld.com/db/item/" + re.search("(i_)(\d)*", WeeklyPic)[0] + "/?lang=CHS"
             WeeklyName = getItemName(WeeklyURL)
             print(WeeklyName)
+            WeeklyCity = getWeeklyItemName(WeeklyName)
+            print("Weekly Item City: " + WeeklyCity)
 
             # 写入该角色数据
             thisCharacterDict["Element"] = Element
