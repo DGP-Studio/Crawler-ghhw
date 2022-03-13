@@ -35,7 +35,8 @@ def getCharacterCity(characterKeyName):
         "xinyan",
         "yanfei",
         "yunjin",
-        "zhongli"
+        "zhongli",
+        "feiyan"
     ]
     Inazuma = [
         "aloy",
@@ -49,15 +50,16 @@ def getCharacterCity(characterKeyName):
         "sayu",
         "thoma",
         "yaemiko",
-        "yoimiya"
+        "yoimiya",
+        "ayato"
     ]
     characterKeyName = characterKeyName.lower()
     if characterKeyName in Mondstadt:
-        return "Mondstadt"
+        return "https://upload-bbs.mihoyo.com/game_record/genshin/city_icon/UI_ChapterIcon_Mengde.png"
     elif characterKeyName in Liyue:
-        return "Liyue"
+        return "https://upload-bbs.mihoyo.com/game_record/genshin/city_icon/UI_ChapterIcon_Liyue.png"
     elif characterKeyName in Inazuma:
-        return "Inazuma"
+        return "https://upload-bbs.mihoyo.com/game_record/genshin/city_icon/UI_ChapterIcon_Daoqi.png"
     else:
         return "ERROR: CANNOT FIND CHARACTER CITY"
 

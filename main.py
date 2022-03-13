@@ -411,23 +411,27 @@ def getCharInfo(url):
     # 名片图
     NameCardArea = main_content.find('span', string='NameCard Gallery').find_next_sibling()
     AllNameCard = NameCardArea.findAll("div", {"class": "gallery_content_cont"})
-    profilePic = URL_Prefix + AllNameCard[1].find("a", {"target": "_blank"})['href']
-    print(profilePic)
+    profilePic = URL_Prefix + AllNameCard[2].find("a", {"target": "_blank"})['href']
+    profilePic = profilePic.replace("com//", "com/")
+    # print(profilePic)
 
     # 角色图片
     CharPicArea = main_content.find('span', string='Character Gallery').find_next_sibling()
     AllCharPic = CharPicArea.find("div", {"class": "gallery_cont"})
     FaceIconText = AllCharPic.find("span", {"class": "gallery_cont_span"}, string="Face Icon")
     FaceIconPic = URL_Prefix + FaceIconText.previous_element.previous_element["data-src"].replace("_70", "")
-    print(FaceIconPic)
+    FaceIconPic = FaceIconPic.replace("com//", "com/")
+    # print(FaceIconPic)
 
     GachaCardText = AllCharPic.find("span", {"class": "gallery_cont_span"}, string="Gacha Card")
     GachaCardPic = URL_Prefix + GachaCardText.previous_element.previous_element["data-src"].replace("_70", "")
-    print(GachaCardPic)
+    GachaCardPic = GachaCardPic.replace("com//", "com/")
+    # print(GachaCardPic)
 
     GachaSplashText = AllCharPic.find("span", {"class": "gallery_cont_span"}, string="Gacha Splash")
     GachaSplashPic = URL_Prefix + GachaSplashText.previous_element.previous_element["data-src"].replace("_70", "")
-    print(GachaSplashPic)
+    GachaSplashPic = GachaSplashPic.replace("com//", "com/")
+    # print(GachaSplashPic)
     '''
     返回内容： 角色基本数值Dict，命之座Dict，基础攻击数值Dict
             E技能数值Dict，Q技能数值Dict，角色标题Str，命之座名称Str，角色介绍Str
@@ -450,8 +454,11 @@ def getItemName(itemURL):
 
 # 从内鬼网获取全部角色
 def getAllCharacters(getBetaCharacters: False):
+    if not getBetaCharacters:
+        url = "https://genshin.honeyhunterworld.com/db/char/characters/?lang=CHS"
+    else:
+        url = "https://genshin.honeyhunterworld.com/db/char/unreleased-and-upcoming-characters/?lang=CHS"
     rootURL = "https://genshin.honeyhunterworld.com"
-    url = "https://genshin.honeyhunterworld.com/db/char/characters/?lang=CHS"
     r = requests.get(url)
     soup = BeautifulSoup(r.text, 'lxml')
     character_list = soup.find_all('div', {'class': 'char_sea_cont'})
@@ -467,7 +474,7 @@ def getAllCharacters(getBetaCharacters: False):
         # print("City: " + CharacterCity)
         Name = character.find("span", {"class": "sea_charname"}).text
         print("Name: " + Name)
-        if "Traveler" in Name:
+        if "旅行者" in Name:
             print("Skip Traveler's page")
         else:
             Element = rootURL + character.find("img", {"class": "char_portrait_card_sea_element"})["data-src"]
@@ -523,10 +530,11 @@ def getAllCharacters(getBetaCharacters: False):
             GenStoneStars = Materials[2].find("div")['data-bg']
             GenStoneStarsPic = rootURL + re.search("(/img)(.)+(png)", GenStoneStars)[0]
             # print(GenStoneStarsPic)
-            GenStonePic = rootURL + Materials[2].find("div").find("img", {"class": "lazy"})["data-src"].replace("_35",
-                                                                                                                "")
+            GenStonePic = rootURL + Materials[2].find("div").find("img", {"class": "lazy"})["data-src"]
             # print(GenStonePic)
-            GenStoneURL = "https://genshin.honeyhunterworld.com/db/item/" + re.search("(i_)(\d)*", GenStonePic)[
+            GenStonePic = GenStonePic.replace("_35.png", "")
+            # print(GenStonePic)
+            GenStoneURL = "https://genshin.honeyhunterworld.com/db/item/" + re.search("(i_)(\d)+", GenStonePic)[
                 0] + "/?lang=CHS"
             GenStoneName = getItemName(GenStoneURL)
             # print(GenStoneName)
@@ -593,8 +601,7 @@ def getAllCharacters(getBetaCharacters: False):
             thisCharacterDict["Key"] = KeyName
             thisCharacterDict["City"] = CharacterCity
             thisCharacterDict["Star"] = CharacterRarity
-            thisCharacterDict["Name"] = Name,
-            thisCharacterDict["Source"] = "face.png"
+            thisCharacterDict["Name"] = Name
             thisCharacterDict["Talent"] = TalentJson
             thisCharacterDict["Boss"] = BOSS_Json
             thisCharacterDict["GemStone"] = GemStoneJSON
@@ -611,24 +618,28 @@ def getAllCharacters(getBetaCharacters: False):
             thisCharacterDict["AstrolabeName"] = characterInfo[7]
             thisCharacterDict["Description"] = characterInfo[8]
             thisCharacterDict["Profile"] = characterInfo[9]
+            thisCharacterDict["Source"] = characterInfo[10]
             thisCharacterDict["GachaCard"] = characterInfo[11]
             thisCharacterDict["GachaSplash"] = characterInfo[12]
 
             allCharactersList.append(thisCharacterDict)
     newFileList = json.dumps(allCharactersList, ensure_ascii=False, indent=4, separators=(',', ':'))
-    f_output = open("result_1.json", mode="a", encoding='utf-8')
+    if getBetaCharacters:
+        newFileName = "beta-characters.json"
+    else:
+        newFileName = "characters.json"
+    f_output = open(newFileName, mode="a", encoding='utf-8')
     f_output.write(newFileList)
     f_output.close()
 
 
 if __name__ == "__main__":
     print("输入工作方式：")
-    print("1. 从内鬼网加载全部角色数据")
-    print("2. 从 characters.json加载数据")
+    print("1. 从 characters.json加载数据")
+    print("2. 从内鬼网加载全部角色数据")
+    print("3. 从内鬼网加载测试角色数据")
     functionChoice = input("你的选择： ")
     if functionChoice == "1":
-        pass
-    elif functionChoice == "2":
         # 打开Json文件
         f = open('characters.json', encoding='utf-8')
         data = json.load(f)
@@ -668,6 +679,8 @@ if __name__ == "__main__":
             f_output.close()
         except Exception as e:
             print(e)
-    elif functionChoice == "3":
-        print("choice 3")
+    elif functionChoice == "2":
         getAllCharacters(False)
+    elif functionChoice == "3":
+        getAllCharacters(True)
+
