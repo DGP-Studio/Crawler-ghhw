@@ -36,7 +36,8 @@ def getCharacterCity(characterKeyName):
         "yanfei",
         "yunjin",
         "zhongli",
-        "feiyan"
+        "feiyan",
+        "yelan"
     ]
     Inazuma = [
         "aloy",
@@ -51,7 +52,8 @@ def getCharacterCity(characterKeyName):
         "thoma",
         "yaemiko",
         "yoimiya",
-        "ayato"
+        "ayato",
+        "shinobu"
     ]
     characterKeyName = characterKeyName.lower()
     if characterKeyName in Mondstadt:
