@@ -54,7 +54,7 @@ def GetWeaponInfo(url):
         # print(content)
         if i == 0:
             temp1 = {
-                "Name": "攻击力",
+                "Name": "基础攻击力",
                 "Value": {}
             }
             temp2 = {
@@ -64,7 +64,6 @@ def GetWeaponInfo(url):
             # print(temp1,temp2)
         elif i == len(row) - 3:  # 在lv80这一行获取武器突破材料
             temp1["Value"][content[0].text] = content[1].text
-            temp2["Value"][content[0].text] = content[2].text
             ContentMaterials = content[3]
             ContentMaterialsDiv = ContentMaterials.find_all("div", {"class": "itempic_cont lazy"})
             temp3 = []
@@ -81,7 +80,10 @@ def GetWeaponInfo(url):
         else:
             # print("正常写入")
             temp1["Value"][content[0].text] = content[1].text
-            temp2["Value"][content[0].text] = content[2].text
+            if temp2["Name"] == "元素精通":
+                temp2["Value"][content[0].text] = content[2].text
+            else:
+                temp2["Value"][content[0].text] = content[2].text + "%"
     WeaponStat.append(temp1)
     WeaponStat.append(temp2)
     # print(WeaponStat)
@@ -117,8 +119,7 @@ def GetWeaponInfo(url):
         "Type": GetWeaponType(WeaponInfoDict["Type"]),
         "ATK": WeaponStat[0]["Value"]["90"],
         "SubStat": WeaponStat[1]["Name"],
-        "SubStatValue": WeaponStat[1]["Value"]["90"] if WeaponStat[1]["Name"] == "元素精通" else WeaponStat[1]["Value"][
-                                                                                                 "90"] + "%",
+        "SubStatValue": WeaponStat[1]["Value"]["90"],
         "Passive": WeaponInfoDict["Special (passive) Ability"],
         "PassiveDescription": WeaponReline,
         "Ascension": Ascension,
