@@ -31,5 +31,5 @@ if __name__ == "__main__":
     f_output = open("characters-YanfeiFixed.json", mode="a", encoding='utf-8')
     f_output.write(newFileList)
     f_output.close()
-    input("脚本执行完成")
+    print("脚本执行完成")
 

@@ -641,7 +641,7 @@ if __name__ == "__main__":
     functionChoice = input("你的选择： ")
     if functionChoice == "1":
         # 打开Json文件
-        f = open('characters.json', encoding='utf-8')
+        f = open('../characters.json', encoding='utf-8')
         data = json.load(f)
         newFileList = []
         for character in data:
