@@ -62,8 +62,12 @@ def GetWeaponInfo(url):
                 "Value": {}
             }
             # print(temp1,temp2)
-        elif i == len(row) - 3:  # 在lv80这一行获取武器突破材料
+        elif i == len(row) - 3:  # 在Lv80+这一行获取武器突破材料
             temp1["Value"][content[0].text] = content[1].text
+            if temp2["Name"] == "元素精通":
+                temp2["Value"][content[0].text] = content[2].text
+            else:
+                temp2["Value"][content[0].text] = content[2].text + "%"
             ContentMaterials = content[3]
             ContentMaterialsDiv = ContentMaterials.find_all("div", {"class": "itempic_cont lazy"})
             temp3 = []
