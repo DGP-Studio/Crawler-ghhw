@@ -112,7 +112,7 @@ def GetWeaponInfo(url):
     try:
         Story = str(data.findNext("div", {"class": "story_container"}).getText)
         Story = Story.replace("<bound method Tag.get_text of <div class=\"story_container\"><br/>", "") \
-            .replace("</div>>", "").replace("<br/>", "\n")
+            .replace("</div>>", "").replace("<br/>", "\n").rstrip("\n")
     except Exception:
         Story = ""
     # print(Story)
