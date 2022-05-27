@@ -70,14 +70,21 @@ def GetWeaponInfo(url):
                 temp2["Value"][content[0].text] = content[2].text + "%"
             ContentMaterials = content[3]
             ContentMaterialsDiv = ContentMaterials.find_all("div", {"class": "itempic_cont lazy"})
-            temp3 = []
+            item_id_list = []
             for content in ContentMaterialsDiv[:-1]:
                 # 获取材料的id
                 item_id = content.find("img", {"class": "itempic lazy"})["data-src"].split("/")[-1]
-                temp3.append(item_id.split("_")[1])
-            Ascension = GetAscension(temp3[0])
-            Elite = GetElite(temp3[1])
-            Monster = GetMonster(temp3[2])
+                item_id_list.append(item_id.split("_")[1])
+            try:
+                # 避免因为缺少突破材料导致报错
+                Ascension = GetAscension(item_id_list[0])
+                Elite = GetElite(item_id_list[1])
+                Monster = GetMonster(item_id_list[2])
+            except Exception:
+                Ascension = {}
+                Elite = {}
+                Monster = {}
+                print("本武器获取突破材料失败！")
             # print(Ascension)
             # print(Elite)
             # print(Monster)
@@ -242,7 +249,7 @@ def GetAllWeapon(BetaWeapon=False):
             Weapon = GetWeaponInfo(url)
             WeaponInfoList.append(Weapon)
             i += 1
-            print("{} {} 已获取成功！".format(i, Weapon["Name"]))
+            print("{} {} 已获取！".format(i, Weapon["Name"]))
         except Exception as e:
             print("{} {} 获取失败！".format(i, url))
             print(e)
@@ -261,6 +268,7 @@ if __name__ == "__main__":
         print("1.获取全部正服武器信息")
         print("2.获取全部beta武器信息")
         print("3.为weapons.json补充信息")
+        print("4.获取指定武器信息")
         print("退出请输入 # ")
         choice = str(input("请选择："))
         if choice is "#":
@@ -307,6 +315,18 @@ if __name__ == "__main__":
             with open("./weapons.json", "w", encoding="utf-8") as f:
                 json.dump(WeaponList, f, ensure_ascii=False, indent=4)
             print("修改完毕！一共补充 {0} 把武器的信息".format(i))
+            exit()
+        elif choice is "4":
+            Weapon = None
+            url = str(input("请输入url:"))
+            try:
+                Weapon = GetWeaponInfo(url)
+                print(" {} 已获取！".format(Weapon["Name"]))
+                with open("./{}.json".format(Weapon["Key"]), "w", encoding="utf-8") as f:
+                    json.dump(Weapon, f, ensure_ascii=False, indent=4)
+            except Exception as e:
+                print(" {} 获取失败！".format(url))
+                print(e)
             exit()
         else:
             print("输入有误！请重新输入")
