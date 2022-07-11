@@ -71,7 +71,7 @@ def GetAscension(item_id):
     }
 
     if item_id not in Ascension.keys():
-        return ""
+        return {}
     else:
         return Ascension[item_id]
 
@@ -142,7 +142,7 @@ def GetElite(item_id):
     }
 
     if item_id not in Elite.keys():
-        return ""
+        return {}
     else:
         return Elite[item_id]
 
@@ -205,6 +205,6 @@ def GetMonster(item_id):
         }
     }
     if item_id not in Monster.keys():
-        return ""
+        return {}
     else:
         return Monster[item_id]

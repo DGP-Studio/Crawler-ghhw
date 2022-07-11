@@ -6,7 +6,11 @@ from bs4 import BeautifulSoup
 from getMaterial import *
 
 
-def GetResponse(url):
+def GetResponse(url: str):
+    """
+    :param url: 武器页面的链接
+    :return: 武器页面的源代码
+    """
     headers = {
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,"
                   "application/signed-exchange;v=b3;q=0.9",
@@ -23,7 +27,11 @@ def GetResponse(url):
     return soup
 
 
-def GetWeaponInfo(url):
+def GetWeaponInfo(url: str):
+    """
+    :param url: 武器页面的链接
+    :return: 含有此武器所有信息的字典
+    """
     soup = GetResponse(url)
     WeaponContent = soup.find("div", {"class": "wrappercont"})
     data = WeaponContent.find("div", {"class": "data_cont_wrapper", "style": "display: block"})
@@ -45,34 +53,35 @@ def GetWeaponInfo(url):
             else:
                 WeaponInfoDict[content[0].text] = content[1].text
     # print(WeaponInfoDict)
-    # 武器基本数值
+    # 武器基本数值 & 武器突破材料
     StatTable = data.find("span", {"class": "item_secondary_title"}, string=" Stat Progression ").find_next_sibling()
     WeaponStat = []
     row = StatTable.find_all("tr")
+    table1, table2 = {}, {}
     for i in range(len(row)):
         content = row[i].find_all("td")
         # print(content)
         if i == 0:
-            temp1 = {
+            table1 = {
                 "Name": "基础攻击力",
                 "Value": {}
             }
-            temp2 = {
+            table2 = {
                 "Name": content[2].text,
                 "Value": {}
             }
             # print(temp1,temp2)
         elif i == len(row) - 3:  # 在Lv80+这一行获取武器突破材料
-            temp1["Value"][content[0].text] = content[1].text
-            if temp2["Name"] == "元素精通":
-                temp2["Value"][content[0].text] = content[2].text
+            table1["Value"][content[0].text] = content[1].text  # 等级
+            if table2["Name"] == "元素精通":
+                table2["Value"][content[0].text] = content[2].text  # 数值
             else:
-                temp2["Value"][content[0].text] = content[2].text + "%"
+                table2["Value"][content[0].text] = content[2].text + "%"  # 数值
             ContentMaterials = content[3]
             ContentMaterialsDiv = ContentMaterials.find_all("div", {"class": "itempic_cont lazy"})
             item_id_list = []
             for content in ContentMaterialsDiv[:-1]:
-                # 获取材料的id
+                # 获取材料的id,根据id找材料信息
                 item_id = content.find("img", {"class": "itempic lazy"})["data-src"].split("/")[-1]
                 item_id_list.append(item_id.split("_")[1])
             try:
@@ -90,13 +99,13 @@ def GetWeaponInfo(url):
             # print(Monster)
         else:
             # print("正常写入")
-            temp1["Value"][content[0].text] = content[1].text
-            if temp2["Name"] == "元素精通":
-                temp2["Value"][content[0].text] = content[2].text
+            table1["Value"][content[0].text] = content[1].text  # 等级
+            if table2["Name"] == "元素精通":
+                table2["Value"][content[0].text] = content[2].text  # 数值
             else:
-                temp2["Value"][content[0].text] = content[2].text + "%"
-    WeaponStat.append(temp1)
-    WeaponStat.append(temp2)
+                table2["Value"][content[0].text] = content[2].text + "%"  # 数值
+    WeaponStat.append(table1)
+    WeaponStat.append(table2)
     # print(WeaponStat)
     # 武器副词条
     WeaponReline = {}
@@ -110,7 +119,7 @@ def GetWeaponInfo(url):
     WeaponName = WeaponContent.find("div", {"class": "custom_title"}).text.replace("-", "").replace(" ", "")
     if WeaponName == "":
         try:
-            # 实在获取不到只能在武器副词条处获取
+            # 实在获取不到只能在武器副词条处获取（再找不到就没办法了）
             # 此处的row = RefineTable.find_all("tr")
             WeaponName = row[0].find("span", {"class": "asc_amount"}).text.replace(" ", "")
         except Exception:
@@ -126,7 +135,7 @@ def GetWeaponInfo(url):
     # 武器英文名
     WeaponKey = GetWeaponKey(url)
     # print(WeaponKey)
-    Weapon = {
+    WeaponDict = {
         "Type": GetWeaponType(WeaponInfoDict["Type"]),
         "ATK": WeaponStat[0]["Value"]["90"],
         "SubStat": WeaponStat[1]["Name"],
@@ -144,10 +153,10 @@ def GetWeaponInfo(url):
         "Story": Story,
         "WeaponStat": WeaponStat
     }
-    return Weapon
+    return WeaponDict
 
 
-def GetWeaponKey(url):
+def GetWeaponKey(url: str):
     soup = GetResponse(url.replace("CHS", "EN"))
     WeaponContent = soup.find("div", {"class": "wrappercont"})
     key = WeaponContent.find("div", {"class": "custom_title"}).text.replace("-", "").replace(" ", "").replace("'", "")
@@ -164,7 +173,7 @@ def GetWeaponKey(url):
     return key
 
 
-def GetWeaponType(type):
+def GetWeaponType(type: str):
     dict = {
         "Sword": "https://genshin.honeyhunterworld.com/img/skills/s_33101.png",  # 单手剑
         "Claymore": "https://genshin.honeyhunterworld.com/img/skills/s_163101.png",  # 双手剑
@@ -175,7 +184,7 @@ def GetWeaponType(type):
     return dict[type]
 
 
-def GetWeaponUrl(WeaponType, Beta=False):
+def GetWeaponUrl(WeaponType: str, Beta: bool = False):
     # 忽略的武器包括一星、二星武器，beta表格内无名武器，未上架到正服的武器
     IgnoreWeaponID = [
         "1001", "1101", "1406",
@@ -208,7 +217,7 @@ def GetWeaponUrl(WeaponType, Beta=False):
     return WeaponList
 
 
-def GetAllWeaponUrl(Beta=False):
+def GetAllWeaponUrl(Beta: bool = False):
     WeaponUrlList = []
     if Beta is False:
         Sword = GetWeaponUrl("Sword", False)
@@ -236,7 +245,7 @@ def GetAllWeaponUrl(Beta=False):
     return WeaponUrlList
 
 
-def GetAllWeapon(BetaWeapon=False):
+def GetAllWeapon(BetaWeapon: bool = False):
     if BetaWeapon:
         WeaponUrlList = GetAllWeaponUrl(Beta=True)
     else:
@@ -253,71 +262,43 @@ def GetAllWeapon(BetaWeapon=False):
         except Exception as e:
             print("{} {} 获取失败！".format(i, url))
             print(e)
-    if BetaWeapon:
-        with open("./BetaWeapons.json", "w", encoding="utf-8") as f:
-            json.dump(WeaponInfoList, f, ensure_ascii=False, indent=4)
-    else:
-        with open("./ReleaseWeapons.json", "w", encoding="utf-8") as f:
-            json.dump(WeaponInfoList, f, ensure_ascii=False, indent=4)
     print("已完成，一共获取到 {} 把武器的信息".format(len(WeaponInfoList)))
+    return WeaponInfoList
 
 
 if __name__ == "__main__":
     while True:
         print("=*=" * 15)
-        print("1.获取全部正服武器信息")
-        print("2.获取全部beta武器信息")
-        print("3.为weapons.json补充信息")
-        print("4.获取指定武器信息")
+        print("1.获取全部武器信息")
+        print("2.获取全部正服武器信息")
+        print("3.获取全部beta武器信息")
+        print("4.为weapons.json补充信息")
         print("退出请输入 # ")
         choice = str(input("请选择："))
+        Weapon = None
         if choice is "#":
             exit()
         elif choice is "1":
-            GetAllWeapon(BetaWeapon=False)
+            ReleaseWeapons = GetAllWeapon(BetaWeapon=False)
+            BetaWeapons = GetAllWeapon(BetaWeapon=True)
+            print("release:{}".format(len(ReleaseWeapons)))
+            print("beta:{}".format(len(BetaWeapons)))
+            ReleaseWeapons.extend(BetaWeapons)
+            print("all:{}".format(len(ReleaseWeapons)))
+            with open("./Weapons.json", "w", encoding="utf-8") as f:
+                json.dump(ReleaseWeapons, f, ensure_ascii=False, indent=4)
             exit()
         elif choice is "2":
-            GetAllWeapon(BetaWeapon=True)
+            ReleaseWeapons = GetAllWeapon(BetaWeapon=False)
+            with open("./ReleaseWeapons.json", "w", encoding="utf-8") as f:
+                json.dump(ReleaseWeapons, f, ensure_ascii=False, indent=4)
             exit()
         elif choice is "3":
-            try:
-                with open("./weapons.json", "r", encoding="utf-8") as f:
-                    WeaponList = json.load(f)
-                print("已获取到 {} 把武器的信息".format(len(WeaponList)))
-            except Exception as e:
-                print(e)
-                exit()
-            WeaponDict = {}
-            for i in range(len(WeaponList)):
-                WeaponDict[WeaponList[i]["Name"]] = i
-            # print(WeaponDict)
-            AllWeaponList = []
-            ReleaseWeaponList = GetAllWeaponUrl()
-            AllWeaponList.extend(ReleaseWeaponList)
-            BetaWeaponList = GetAllWeaponUrl(Beta=True)
-            AllWeaponList.extend(BetaWeaponList)
-            i = 0
-            for url in AllWeaponList:
-                # print("开始获取......")
-                try:
-                    Weapon = GetWeaponInfo(url)
-                    weapon_id = WeaponDict[Weapon["Name"]]
-                    WeaponList[weapon_id]["PassiveDescription"] = Weapon["PassiveDescription"]
-                    WeaponList[weapon_id]["Description"] = Weapon["Description"]
-                    WeaponList[weapon_id]["Story"] = Weapon["Story"]
-                    WeaponList[weapon_id]["WeaponStat"] = Weapon["WeaponStat"]
-                    print("{0} {1} 已经补充成功！".format(weapon_id, Weapon["Name"]))
-                    i += 1
-                except Exception as e:
-                    print("{} 补充失败！".format(url))
-                    print(e)
-                time.sleep(1)
-            with open("./weapons.json", "w", encoding="utf-8") as f:
-                json.dump(WeaponList, f, ensure_ascii=False, indent=4)
-            print("修改完毕！一共补充 {0} 把武器的信息".format(i))
+            BetaWeapons = GetAllWeapon(BetaWeapon=True)
+            with open("./BetaWeapons.json", "w", encoding="utf-8") as f:
+                json.dump(BetaWeapons, f, ensure_ascii=False, indent=4)
             exit()
         elif choice is "4":
-            Weapon = None
             url = str(input("请输入url:"))
             try:
                 Weapon = GetWeaponInfo(url)
